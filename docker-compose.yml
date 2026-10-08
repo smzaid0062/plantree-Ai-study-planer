@@ -1,0 +1,26 @@
+# Place this file at the project ROOT (same level as backend/ and frontend/)
+
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: plantree-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env   # MONGO_URI, JWT_SECRET, GROQ_API_KEY etc.
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: plantree-frontend
+    ports:
+      - "8000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

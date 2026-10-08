@@ -14,7 +14,7 @@ const getGroqClient = () => {
 export const generateAIResponse = async (prompt) => {
   const client = getGroqClient();
   const response = await client.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "llama-3.3-70b-specdec", // ← yeh try karo
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
     max_tokens: 4000,

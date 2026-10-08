@@ -17,7 +17,7 @@ const app = express();
 app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
 app.use(express.json());
 
-app.get("/", (req, res) => res.json({ message: "AI Study Planner API 🚀" }));
+app.get("/health", (req, res) => res.json({ message: "AI Study Planner Server Is Healthy 🚀" }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/subjects", subjectRoutes);
