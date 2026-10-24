@@ -147,45 +147,66 @@ export const generatePlan = async (req, res) => {
       estimatedHours: t.estimatedHours,
     }));
 
-    const prompt = `
-You are an expert study planner.
+   const prompt = `You are a study planner. Create a schedule starting from ${today}.
+Student studies ${dailyHours} hours per day maximum.
 
-Create a day-by-day study schedule starting from today: ${today}
-Student can study ${dailyHours} hours per day maximum.
+Topics:
+${JSON.stringify(topicsForAI)}
 
-Topics to schedule (JSON):
-${JSON.stringify(topicsForAI, null, 2)}
+STRICT RULES:
+1. Return ONLY a raw JSON array — absolutely no markdown, no backticks, no explanation text
+2. Each topic EXACTLY ONCE
+3. Field name must be "topicId" (not "id")
+4. scheduledDate format: "YYYY-MM-DD"
+5. Schedule ALL topics before their examDate
+6. Max ${dailyHours} hours per day
 
-Rules:
-1. Schedule ALL topics before their subject's examDate
-2. Do not exceed ${dailyHours} hours per day
-3. Keep harder/larger topics earlier
-4. Mix topics from different subjects on same day if possible
-5. Return ONLY a valid JSON array, no explanation
-
-Return format:
-[
-  { "topicId": "topic_id_here", "scheduledDate": "2026-07-15" },
-  { "topicId": "another_id", "scheduledDate": "2026-07-15" }
-]
-    `;
+Output example (copy this exact format):
+[{"topicId":"abc123","scheduledDate":"2026-10-25"},{"topicId":"def456","scheduledDate":"2026-10-26"}]`;
 
     const responseText = await generateAIResponse(prompt);
 
-    let schedule;
-    try {
-      const cleaned = responseText
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-      schedule = JSON.parse(cleaned);
-    } catch {
-      return res.status(500).json({
-        success: false,
-        message: "AI plan generation failed. Try again.",
-      });
-    }
+let schedule;
 
+// Attempt 1 — direct parse
+try {
+  schedule = JSON.parse(responseText);
+} catch {
+  // Attempt 2 — extract JSON array with regex
+  const match = responseText.match(/\[[\s\S]*\]/);
+  if (match) {
+    try {
+      schedule = JSON.parse(match[0]);
+    } catch {
+      schedule = null;
+    }
+  }
+}
+
+// Attempt 3 — clean markdown and parse
+if (!schedule) {
+  try {
+    const cleaned = responseText
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .replace(/[\r\n]+/g, " ")
+      .trim();
+    schedule = JSON.parse(cleaned);
+  } catch {
+    console.error("All parse attempts failed. Raw response:", responseText.slice(0, 300));
+    return res.status(500).json({
+      success: false,
+      message: "AI plan generation failed. Try again.",
+    });
+  }
+}
+
+if (!Array.isArray(schedule) || schedule.length === 0) {
+  return res.status(500).json({
+    success: false,
+    message: "AI returned empty schedule. Try again.",
+  });
+}
     // Topics ko scheduled dates ke saath update karo
     const updatePromises = schedule.map((item) =>
       Topic.findByIdAndUpdate(item.topicId, {
