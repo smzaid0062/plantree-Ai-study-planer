@@ -57,24 +57,24 @@ ${syllabusText.slice(0, 8000)}
     const responseText = await generateAIResponse(prompt);
 
     // JSON parse karo safely
-   // Multiple parse attempts
-let topics;
-try {
-  topics = JSON.parse(responseText);
-} catch {
-  const match = responseText.match(/\[[\s\S]*\]/);
-  if (match) {
-    try { topics = JSON.parse(match[0]); } catch { topics = null; }
-  }
-}
-if (!topics) {
-  try {
-    const cleaned = responseText.replace(/```json/gi,"").replace(/```/g,"").trim();
-    topics = JSON.parse(cleaned);
-  } catch {
-    return res.status(500).json({ success: false, message: "AI response parsing failed." });
-  }
-}
+    // Multiple parse attempts
+    let topics;
+    try {
+      topics = JSON.parse(responseText);
+    } catch {
+      const match = responseText.match(/\[[\s\S]*\]/);
+      if (match) {
+        try { topics = JSON.parse(match[0]); } catch { topics = null; }
+      }
+    }
+    if (!topics) {
+      try {
+        const cleaned = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+        topics = JSON.parse(cleaned);
+      } catch {
+        return res.status(500).json({ success: false, message: "AI response parsing failed." });
+      }
+    }
 
     // Purane topics delete karo (fresh parse)
     await Topic.deleteMany({ subjectId, userId: req.user._id });
@@ -147,7 +147,7 @@ export const generatePlan = async (req, res) => {
       estimatedHours: t.estimatedHours,
     }));
 
-   const prompt = `You are a study planner. Create a schedule starting from ${today}.
+    const prompt = `You are a study planner. Create a schedule starting from ${today}.
 Student studies ${dailyHours} hours per day maximum.
 
 Topics:
@@ -165,48 +165,51 @@ Output example (copy this exact format):
 [{"topicId":"abc123","scheduledDate":"2026-10-25"},{"topicId":"def456","scheduledDate":"2026-10-26"}]`;
 
     const responseText = await generateAIResponse(prompt);
+    console.log("=== AI RAW RESPONSE ===");
+    console.log(responseText);
+    console.log("=== END ===");
 
-let schedule;
+    let schedule;
 
-// Attempt 1 — direct parse
-try {
-  schedule = JSON.parse(responseText);
-} catch {
-  // Attempt 2 — extract JSON array with regex
-  const match = responseText.match(/\[[\s\S]*\]/);
-  if (match) {
+    // Attempt 1 — direct parse
     try {
-      schedule = JSON.parse(match[0]);
+      schedule = JSON.parse(responseText);
     } catch {
-      schedule = null;
+      // Attempt 2 — extract JSON array with regex
+      const match = responseText.match(/\[[\s\S]*\]/);
+      if (match) {
+        try {
+          schedule = JSON.parse(match[0]);
+        } catch {
+          schedule = null;
+        }
+      }
     }
-  }
-}
 
-// Attempt 3 — clean markdown and parse
-if (!schedule) {
-  try {
-    const cleaned = responseText
-      .replace(/```json/gi, "")
-      .replace(/```/g, "")
-      .replace(/[\r\n]+/g, " ")
-      .trim();
-    schedule = JSON.parse(cleaned);
-  } catch {
-    console.error("All parse attempts failed. Raw response:", responseText.slice(0, 300));
-    return res.status(500).json({
-      success: false,
-      message: "AI plan generation failed. Try again.",
-    });
-  }
-}
+    // Attempt 3 — clean markdown and parse
+    if (!schedule) {
+      try {
+        const cleaned = responseText
+          .replace(/```json/gi, "")
+          .replace(/```/g, "")
+          .replace(/[\r\n]+/g, " ")
+          .trim();
+        schedule = JSON.parse(cleaned);
+      } catch {
+        console.error("All parse attempts failed. Raw response:", responseText.slice(0, 300));
+        return res.status(500).json({
+          success: false,
+          message: "AI plan generation failed. Try again.",
+        });
+      }
+    }
 
-if (!Array.isArray(schedule) || schedule.length === 0) {
-  return res.status(500).json({
-    success: false,
-    message: "AI returned empty schedule. Try again.",
-  });
-}
+    if (!Array.isArray(schedule) || schedule.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: "AI returned empty schedule. Try again.",
+      });
+    }
     // Topics ko scheduled dates ke saath update karo
     const updatePromises = schedule.map((item) =>
       Topic.findByIdAndUpdate(item.topicId, {
@@ -275,7 +278,7 @@ export const replan = async (req, res) => {
       wasMissed: t.scheduledDate < today,
     }));
 
-   const prompt = `You are a study planner. Replan these topics starting from ${todayStr}.
+    const prompt = `You are a study planner. Replan these topics starting from ${todayStr}.
 Student studies ${dailyHours} hours per day maximum.
 
 Topics to replan:
@@ -342,12 +345,12 @@ Example output:
     }
 
     const updatePromises = newSchedule.map((item) => {
-  const id = item.topicId || item.id; // ← dono handle karo
-  if (!id) return Promise.resolve();
-  return Topic.findByIdAndUpdate(id, {
-    scheduledDate: new Date(item.scheduledDate),
-  });
-});
+      const id = item.topicId || item.id; // ← dono handle karo
+      if (!id) return Promise.resolve();
+      return Topic.findByIdAndUpdate(id, {
+        scheduledDate: new Date(item.scheduledDate),
+      });
+    });
 
     await Promise.all(updatePromises);
 
