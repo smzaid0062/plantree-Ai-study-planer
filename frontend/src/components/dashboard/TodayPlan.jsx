@@ -47,11 +47,10 @@ export default function TodayPlan({ topics = [], onStatusUpdate }) {
           topics.map((topic) => (
             <div
               key={topic._id}
-              className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all ${
-                topic.status === "done"
+              className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all ${topic.status === "done"
                   ? "bg-primary-50 border-primary-100"
                   : "bg-surface-50 border-surface-200 hover:border-primary-200"
-              }`}
+                }`}
             >
               <button
                 onClick={() => handleToggle(topic)}
@@ -65,9 +64,8 @@ export default function TodayPlan({ topics = [], onStatusUpdate }) {
               </button>
 
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold truncate ${
-                  topic.status === "done" ? "line-through text-gray-400" : "text-gray-800"
-                }`}>
+                <p className={`text-sm font-semibold truncate ${topic.status === "done" ? "line-through text-gray-400" : "text-gray-800"
+                  }`}>
                   {topic.title}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -92,10 +90,13 @@ export default function TodayPlan({ topics = [], onStatusUpdate }) {
 
       {topics.length > 0 && (
         <div className="px-4 pb-4">
-          <button className="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors flex items-center justify-center gap-2">
+          <Link
+            to="/sessions"
+            className="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+          >
             <Play size={15} />
             Start Study Session
-          </button>
+          </Link>
         </div>
       )}
     </div>
