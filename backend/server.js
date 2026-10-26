@@ -10,6 +10,8 @@ import topicRoutes from "./src/routes/topic.routes.js";
 import aiRoutes from "./src/routes/ai.routes.js";
 import sessionRoutes from "./src/routes/session.routes.js";
 import quizRoutes from "./src/routes/quiz.routes.js";
+import resourceRoutes from "./src/routes/resource.routes.js";
+
 connectDB();
 
 const app = express();
@@ -25,6 +27,7 @@ app.use("/api/topics", topicRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/quiz", quizRoutes);
+app.use("/api/resources", resourceRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
