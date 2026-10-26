@@ -11,6 +11,9 @@ import StudySessions from "./pages/StudySessions";
 import CalendarPage from "./pages/Calendar";
 import Quiz from "./pages/Quiz";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import Resources from "./pages/Resources";
+
+
 
 function App() {
   return (
@@ -26,6 +29,7 @@ function App() {
       <Route path="/sessions" element={<ProtectedRoute><StudySessions /></ProtectedRoute>} />
       <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
       <Route path="/quiz/:subjectId" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
+      <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
