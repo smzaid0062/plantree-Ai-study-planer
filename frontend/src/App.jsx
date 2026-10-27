@@ -28,7 +28,7 @@ function App() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/sessions" element={<ProtectedRoute><StudySessions /></ProtectedRoute>} />
       <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
-      <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
+      <Route path="/resources" element={<Resources />} />
       <Route path="/quiz/:subjectId" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
       
       <Route path="*" element={<Navigate to="/" replace />} />
