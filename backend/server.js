@@ -16,7 +16,12 @@ connectDB();
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
+// Fixed CORS (using the import at the top, not require)
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:8000'], // Allow Vite and Nginx
+  credentials: true,
+}));
+
 app.use(express.json());
 
 app.get("/health", (req, res) => res.json({ message: "AI Study Planner Server Is Healthy 🚀" }));
@@ -29,5 +34,10 @@ app.use("/api/sessions", sessionRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/resources", resourceRoutes);
 
+// Fixed PORT logic
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Listen on 0.0.0.0 so Docker containers can reach it
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});

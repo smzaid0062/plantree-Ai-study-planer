@@ -2,7 +2,7 @@ import express from "express";
 import protect from "../middleware/auth.middleware.js";
 import Topic from "../models/Topic.js";
 import Subject from "../models/Subject.js";
-import { generateAIResponse } from "../config/groq.js";
+import { generateAIResponse } from "../config/ai.js";
 
 const router = express.Router();
 

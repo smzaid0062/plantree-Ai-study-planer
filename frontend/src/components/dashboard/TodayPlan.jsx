@@ -48,8 +48,8 @@ export default function TodayPlan({ topics = [], onStatusUpdate }) {
             <div
               key={topic._id}
               className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all ${topic.status === "done"
-                  ? "bg-primary-50 border-primary-100"
-                  : "bg-surface-50 border-surface-200 hover:border-primary-200"
+                ? "bg-primary-50 border-primary-100"
+                : "bg-surface-50 border-surface-200 hover:border-primary-200"
                 }`}
             >
               <button
@@ -90,13 +90,14 @@ export default function TodayPlan({ topics = [], onStatusUpdate }) {
 
       {topics.length > 0 && (
         <div className="px-4 pb-4">
-          <Link
-            to="/sessions"
-            className="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+          <button
+            onClick={() => window.location.href = "/sessions"} // Or use your router's navigate function
+            style={{ color: 'white', backgroundColor: '#16a34a' }} // Force inline colors just to test
+            className="w-full py-3 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 hover:opacity-90"
           >
-            <Play size={15} />
-            Start Study Session
-          </Link>
+            <Play size={15} fill="white" />
+            <span>Start Study Session</span>
+          </button>
         </div>
       )}
     </div>
