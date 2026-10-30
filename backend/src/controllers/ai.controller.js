@@ -1,7 +1,7 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const pdfParse = require("pdf-parse");
-import { generateAIResponse } from "../config/groq.js";
+import { generateAIResponse } from "../config/ai.js";
 import Topic from "../models/Topic.js";
 import Subject from "../models/Subject.js";
 

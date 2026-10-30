@@ -1,11 +1,34 @@
 import { useState, useEffect } from "react";
 import {
   Sparkles, Bookmark, BookmarkCheck, ExternalLink,
-  Trash2, Search, Filter, Youtube, FileText,
+  Trash2, Search, Filter, FileText,
   BookOpen, Code, Loader2, X
 } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import api from "../services/api";
+
+
+// 2. Define a local Youtube icon (brand icons were removed from lucide-react v1+)
+const Youtube = ({ size = 24, className = "", ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+    <path d="m10 15 5-3-5-3z" />
+  </svg>
+);
+
+
 
 // Type config
 const TYPE_CONFIG = {
@@ -145,7 +168,7 @@ function SuggestModal({ topics, subjects, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-surface-100 sticky top-0 bg-white z-10">
           <div className="flex items-center gap-2">

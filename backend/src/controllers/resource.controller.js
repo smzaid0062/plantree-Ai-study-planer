@@ -1,8 +1,93 @@
 import Resource from "../models/Resource.js";
 import Topic from "../models/Topic.js";
-import { generateAIResponse } from "../config/groq.js";
+import { generateAIResponse } from "../config/ai.js";
 
 // POST /api/resources/suggest — AI suggestions for a topic
+// export const suggestResources = async (req, res) => {
+//   try {
+//     const { topicTitle, subjectName, topicId, subjectId } = req.body;
+
+//     if (!topicTitle) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "topicTitle is required",
+//       });
+//     }
+
+//     const prompt = `You are an expert academic resource curator.
+
+// Suggest exactly 6 high-quality learning resources for the topic: "${topicTitle}" from the subject: "${subjectName || "General"}".
+
+// Return ONLY a valid JSON array. No markdown, no backticks, no explanation.
+
+// Format:
+// [
+//   {
+//     "title": "Resource title",
+//     "url": "https://actual-url.com",
+//     "type": "video",
+//     "source": "YouTube"
+//   }
+// ]
+
+// Rules:
+// 1. Include 2 YouTube videos, 2 articles, 1 documentation, 1 book reference
+// 2. Use REAL, working URLs from these trusted sources:
+//    - YouTube: youtube.com/watch?v=...
+//    - Articles: geeksforgeeks.org, programiz.com, javatpoint.com, tutorialspoint.com
+//    - Docs: developer.mozilla.org, docs.python.org, cppreference.com
+//    - Books: Use Google Books or archive.org links
+// 3. type must be one of: video, article, documentation, book
+// 4. source is the website name (YouTube, GeeksForGeeks, MDN, etc.)
+// 5. Return ONLY the JSON array`;
+
+//     const responseText = await generateAIResponse(prompt);
+
+//     let resources;
+
+//     // Parse attempts
+//     try {
+//       resources = JSON.parse(responseText);
+//     } catch {
+//       const match = responseText.match(/\[[\s\S]*\]/);
+//       if (match) {
+//         try { resources = JSON.parse(match[0]); }
+//         catch { resources = null; }
+//       }
+//     }
+
+//     if (!resources) {
+//       try {
+//         const cleaned = responseText
+//           .replace(/```json/gi, "")
+//           .replace(/```/g, "")
+//           .trim();
+//         resources = JSON.parse(cleaned);
+//       } catch {
+//         return res.status(500).json({
+//           success: false,
+//           message: "AI suggestion failed. Try again.",
+//         });
+//       }
+//     }
+
+//     // Add metadata
+//     const enriched = resources.map((r) => ({
+//       ...r,
+//       topicId: topicId || null,
+//       subjectId: subjectId || null,
+//       isAISuggested: true,
+//       isSaved: false,
+//     }));
+
+//     res.status(200).json({ success: true, data: enriched });
+//   } catch (error) {
+//     console.error("Suggest resources error:", error.message);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+
 export const suggestResources = async (req, res) => {
   try {
     const { topicTitle, subjectName, topicId, subjectId } = req.body;
@@ -14,64 +99,62 @@ export const suggestResources = async (req, res) => {
       });
     }
 
-    const prompt = `You are an expert academic resource curator.
+    // A tighter prompt to stop the AI from talking too much
+    const prompt = `You are an academic resource curator.
+I have performed a live web search and provided the results below. 
+Your task is to select exactly 6 high-quality learning resources from the provided search results for the topic: "${topicTitle}" (Subject: "${subjectName || "General"}").
 
-Suggest exactly 6 high-quality learning resources for the topic: "${topicTitle}" from the subject: "${subjectName || "General"}".
-
-Return ONLY a valid JSON array. No markdown, no backticks, no explanation.
+CRITICAL RULES:
+1. You MUST only use URLs that appear in the web search results provided.
+2. DO NOT generate or invent any new URLs.
+3. Return ONLY a valid JSON array. No markdown, no backticks, no explanation.
 
 Format:
 [
   {
     "title": "Resource title",
-    "url": "https://actual-url.com",
+    "url": "https://actual-url-from-search-results.com",
     "type": "video",
-    "source": "YouTube"
+    "source": "DomainName"
   }
 ]
 
-Rules:
-1. Include 2 YouTube videos, 2 articles, 1 documentation, 1 book reference
-2. Use REAL, working URLs from these trusted sources:
-   - YouTube: youtube.com/watch?v=...
-   - Articles: geeksforgeeks.org, programiz.com, javatpoint.com, tutorialspoint.com
-   - Docs: developer.mozilla.org, docs.python.org, cppreference.com
-   - Books: Use Google Books or archive.org links
-3. type must be one of: video, article, documentation, book
-4. source is the website name (YouTube, GeeksForGeeks, MDN, etc.)
-5. Return ONLY the JSON array`;
-
+Include: 2 YouTube videos, 2 articles, 1 documentation, 1 book reference from the results (if available).
+Type must be one of: video, article, documentation, book.
+Source must be the domain name (e.g., youtube.com, geeksforgeeks.org).
+Return ONLY the JSON array.`;
+    
+    // Call the AI (make sure this function passes temperature: 0.1 in your ai.service)
     const responseText = await generateAIResponse(prompt);
+    console.log("✅ AI Responded. Length:", responseText.length);
 
-    let resources;
+    let resources = null;
 
-    // Parse attempts
+    // Attempt 1: Direct Parse
     try {
       resources = JSON.parse(responseText);
-    } catch {
+    } catch (e) {
+      // Attempt 2: Extract everything between the first [ and last ]
       const match = responseText.match(/\[[\s\S]*\]/);
       if (match) {
-        try { resources = JSON.parse(match[0]); }
-        catch { resources = null; }
+        try {
+          resources = JSON.parse(match[0]);
+        } catch (innerError) {
+          console.error("❌ Regex found brackets, but JSON was invalid:", innerError.message);
+        }
       }
     }
 
-    if (!resources) {
-      try {
-        const cleaned = responseText
-          .replace(/```json/gi, "")
-          .replace(/```/g, "")
-          .trim();
-        resources = JSON.parse(cleaned);
-      } catch {
-        return res.status(500).json({
-          success: false,
-          message: "AI suggestion failed. Try again.",
-        });
-      }
+    // Attempt 3: Sanity Check (Make sure it's actually an array)
+    if (!Array.isArray(resources)) {
+      console.error("❌ AI FAILED TO RETURN AN ARRAY. Raw text was:\n", responseText);
+      return res.status(500).json({
+        success: false,
+        message: "AI returned an invalid format. Please try again.",
+      });
     }
 
-    // Add metadata
+    // Add metadata to each resource
     const enriched = resources.map((r) => ({
       ...r,
       topicId: topicId || null,
@@ -81,9 +164,13 @@ Rules:
     }));
 
     res.status(200).json({ success: true, data: enriched });
+
   } catch (error) {
-    console.error("Suggest resources error:", error.message);
-    res.status(500).json({ success: false, message: error.message });
+    console.error("❌ Suggest resources CRASHED:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error while generating resources." 
+    });
   }
 };
 
