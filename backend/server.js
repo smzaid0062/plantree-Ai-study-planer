@@ -38,7 +38,6 @@ app.use(
 );
 
 
-app.options("*", cors());
 app.use(express.json());
 app.get("/health", (req, res) => res.json({ message: "AI Study Planner Server Is Healthy 🚀" }));
 
