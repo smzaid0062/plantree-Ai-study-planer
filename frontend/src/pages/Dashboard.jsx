@@ -7,6 +7,7 @@ import StudyHoursChart from "../components/dashboard/StudyHoursChart";
 import CalendarWidget from "../components/dashboard/CalendarWidget";
 import ExamCountdown from "../components/dashboard/ExamCountdown";
 import useDashboard from "../hooks/useDashboard";
+import ActivityHeatmap from "../components/dashboard/ActivityHeatmap";
 
 export default function Dashboard() {
   const { data, loading, error, refetch } = useDashboard();
@@ -115,6 +116,12 @@ export default function Dashboard() {
           />
           <StudyHoursChart weeklyProgress={data?.weeklyProgress || []} />
           <ExamCountdown subjects={data?.subjects || []} />
+        </div>
+
+        <div className="space-y-6">
+          {/* ...existing stat cards, today's plan, charts... */}
+
+          <ActivityHeatmap />
         </div>
       </div>
     </Layout>
