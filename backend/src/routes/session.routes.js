@@ -47,4 +47,49 @@ router.get("/", protect, async (req, res) => {
   }
 });
 
+// GET /api/sessions/activity?days=365 — daily study hours for heatmap
+router.get("/activity", protect, async (req, res) => {
+  try {
+    const days = Math.min(Number(req.query.days) || 365, 730);
+
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    start.setHours(0, 0, 0, 0);
+
+    const activity = await StudySession.aggregate([
+      {
+        $match: {
+          userId: req.user._id,
+          createdAt: { $gte: start },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+              timezone: "Asia/Kolkata",
+            },
+          },
+          hours: { $sum: "$hoursStudied" },
+          sessions: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: activity.map((a) => ({
+        date: a._id,
+        hours: Number(a.hours.toFixed(2)),
+        sessions: a.sessions,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 export default router;
