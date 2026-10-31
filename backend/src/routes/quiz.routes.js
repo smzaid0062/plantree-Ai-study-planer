@@ -3,6 +3,7 @@ import protect from "../middleware/auth.middleware.js";
 import Topic from "../models/Topic.js";
 import Subject from "../models/Subject.js";
 import { generateAIResponse } from "../config/ai.js";
+import { awardXp } from "../utils/xp.js";
 
 const router = express.Router();
 
@@ -110,6 +111,17 @@ Format:
 
   } catch (error) {
     console.error("Quiz generate error:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post("/complete", protect, async (req, res) => {
+  try {
+    const { score = 0, total = 10 } = req.body;
+    const amount = 10 + Math.round(score * 2);
+    const xp = await awardXp(req.user._id, amount, `Quiz: ${score}/${total}`);
+    res.status(200).json({ success: true, data: xp });
+  } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });

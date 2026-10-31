@@ -2,16 +2,21 @@ import express from "express";
 import protect from "../middleware/auth.middleware.js";
 import StudySession from "../models/StudySession.js";
 import Topic from "../models/Topic.js";
+import { awardXp } from "../utils/xp.js";
+import { getCurrentStreak } from "../utils/streak.js";
 
 const router = express.Router();
 
+// POST /api/sessions — save session
 // POST /api/sessions — save session
 router.post("/", protect, async (req, res) => {
   try {
     const { topicId, hoursStudied, notes } = req.body;
 
     if (!topicId || !hoursStudied) {
-      return res.status(400).json({ success: false, message: "topicId and hoursStudied required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "topicId and hoursStudied required" });
     }
 
     const session = await StudySession.create({
@@ -25,7 +30,23 @@ router.post("/", protect, async (req, res) => {
     // Topic status in_progress mark karo
     await Topic.findByIdAndUpdate(topicId, { status: "in_progress" });
 
-    res.status(201).json({ success: true, data: session });
+    // XP: har 30 min ke liye 5 XP, minimum 5
+    const minutes = hoursStudied * 60;
+    const sessionXp = Math.max(5, Math.floor(minutes / 30) * 5);
+    const xpResult = await awardXp(req.user._id, sessionXp, "Study session");
+
+    // Streak bonus: 3+ din ki streak par +10 XP
+    const streak = await getCurrentStreak(req.user._id);
+    let streakXp = null;
+    if (streak >= 3) {
+      streakXp = await awardXp(req.user._id, 10, `${streak}-day streak bonus`);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: session,
+      gamification: { xp: xpResult, streak, streakBonus: streakXp },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -87,6 +108,16 @@ router.get("/activity", protect, async (req, res) => {
         sessions: a.sessions,
       })),
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// GET /api/sessions/streak
+router.get("/streak", protect, async (req, res) => {
+  try {
+    const streak = await getCurrentStreak(req.user._id);
+    res.status(200).json({ success: true, data: { streak } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

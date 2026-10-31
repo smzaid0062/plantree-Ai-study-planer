@@ -1,6 +1,6 @@
 import Topic from "../models/Topic.js";
 import Subject from "../models/Subject.js";
-
+import { awardXp } from "../utils/xp.js";
 export const createTopics = async (req, res) => {
   try {
     const { subjectId, topics } = req.body;
@@ -68,6 +68,13 @@ export const updateTopicStatus = async (req, res) => {
     });
 
     res.status(200).json({ success: true, data: topic });
+    
+    let xpResult = null;
+    if (status === "done" && topic.completedAt) {
+      xpResult = await awardXp(req.user._id, 20, `Completed: ${topic.title}`);
+    }
+
+    res.status(200).json({ success: true, data: topic, gamification: { xp: xpResult } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
