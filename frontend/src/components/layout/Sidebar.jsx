@@ -5,17 +5,18 @@ import {
   Settings, LogOut, Sparkles, Brain
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { levelProgress } from "../../utils/gamification";
 
 const navItems = [
-  { name: "Dashboard",      icon: LayoutDashboard, path: "/" },
-  { name: "My Plan",        icon: BookOpen,        path: "/plan" },
-  { name: "Subjects",       icon: Library,         path: "/subjects" },
-  { name: "Topics",         icon: FileText,        path: "/topics" },
-  { name: "Study Sessions", icon: Timer,           path: "/sessions" },
-  { name: "Analytics",      icon: BarChart3,       path: "/analytics" },
-  { name: "Calendar",       icon: Calendar,        path: "/calendar" },
-  { name: "Resources",      icon: BookMarked,      path: "/resources" },
-  { name: "Settings",       icon: Settings,        path: "/settings" },
+  { name: "Dashboard", icon: LayoutDashboard, path: "/" },
+  { name: "My Plan", icon: BookOpen, path: "/plan" },
+  { name: "Subjects", icon: Library, path: "/subjects" },
+  { name: "Topics", icon: FileText, path: "/topics" },
+  { name: "Study Sessions", icon: Timer, path: "/sessions" },
+  { name: "Analytics", icon: BarChart3, path: "/analytics" },
+  { name: "Calendar", icon: Calendar, path: "/calendar" },
+  { name: "Resources", icon: BookMarked, path: "/resources" },
+  { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
 export default function Sidebar() {
@@ -28,10 +29,11 @@ export default function Sidebar() {
   };
 
   // XP progress (placeholder — Week 4 mein gamification add karenge)
-  const level = 3;
-  const xp = 2450;
-  const xpForNextLevel = 3000;
-  const xpPercent = Math.round((xp / xpForNextLevel) * 100);
+  // const level = 3;
+  // const xp = 2450;
+  // const xpForNextLevel = 3000;
+  // const xpPercent = Math.round((xp / xpForNextLevel) * 100);
+  const { level, current, next, percent } = levelProgress(user?.xp || 0);
 
   return (
     <aside className="w-64 bg-white border-r border-surface-200 flex flex-col h-screen sticky top-0 shadow-sm">
@@ -57,10 +59,9 @@ export default function Sidebar() {
             to={path}
             end={path === "/"}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isActive
-                  ? "bg-primary-50 text-primary-700 font-semibold"
-                  : "text-gray-500 hover:bg-surface-50 hover:text-gray-700"
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+                ? "bg-primary-50 text-primary-700 font-semibold"
+                : "text-gray-500 hover:bg-surface-50 hover:text-gray-700"
               }`
             }
           >
@@ -123,20 +124,18 @@ export default function Sidebar() {
         </div>
 
         {/* Level + XP bar */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-semibold text-primary-600">
-              Level {level}
-            </span>
-            <span className="text-xs text-gray-400">{xp} / {xpForNextLevel} XP</span>
-          </div>
-          <div className="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full transition-all duration-500"
-              style={{ width: `${xpPercent}%` }}
-            ></div>
-          </div>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-semibold text-primary-600">Level {level}</span>
+          <span className="text-xs text-gray-400">
+            {user?.xp || 0} / {next} XP
+          </span>
         </div>
+        <div className="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full transition-all duration-500"
+            style={{ width: `${percent}%` }}
+          />
+        </div>s
       </div>
     </aside>
   );

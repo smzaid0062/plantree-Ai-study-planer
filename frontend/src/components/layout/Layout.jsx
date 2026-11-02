@@ -1,5 +1,6 @@
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import XpToast from "../common/XpToast";
 
 export default function Layout({ children, missedCount = 0 }) {
   return (
@@ -10,6 +11,7 @@ export default function Layout({ children, missedCount = 0 }) {
         <main className="flex-1 p-6 overflow-y-auto">
           {children}
         </main>
+        <XpToast />
       </div>
     </div>
   );
