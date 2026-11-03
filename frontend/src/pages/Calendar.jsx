@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Clock, CheckCircle2, Circle, X } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import api from "../services/api";
+import { notifyGamification } from "../utils/xpNotify";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -17,7 +18,8 @@ function DayModal({ date, topics, onClose, onUpdate }) {
     const newStatus = topic.status === "done" ? "pending" : "done";
     setUpdating(topic._id);
     try {
-      await api.patch(`/api/topics/${topic._id}/status`, { status: newStatus });
+      const res = await api.patch(`/api/topics/${topic._id}/status`, { status: newStatus });
+      if (newStatus === "done") notifyGamification(res.data.gamification);
       onUpdate?.();
     } catch (err) {
       console.error(err);
@@ -64,11 +66,10 @@ function DayModal({ date, topics, onClose, onUpdate }) {
           {topics.map((topic) => (
             <div
               key={topic._id}
-              className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all ${
-                topic.status === "done"
+              className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all ${topic.status === "done"
                   ? "bg-primary-50 border-primary-100"
                   : "bg-surface-50 border-surface-200"
-              }`}
+                }`}
             >
               <button
                 onClick={() => handleToggle(topic)}
@@ -85,9 +86,8 @@ function DayModal({ date, topics, onClose, onUpdate }) {
               </button>
 
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold truncate ${
-                  topic.status === "done" ? "line-through text-gray-400" : "text-gray-800"
-                }`}>
+                <p className={`text-sm font-semibold truncate ${topic.status === "done" ? "line-through text-gray-400" : "text-gray-800"
+                  }`}>
                   {topic.title}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -195,8 +195,8 @@ export default function CalendarPage() {
 
   const selectedTopics = selectedDate
     ? allTopics.filter(t =>
-        new Date(t.scheduledDate).toISOString().split("T")[0] === selectedDate
-      )
+      new Date(t.scheduledDate).toISOString().split("T")[0] === selectedDate
+    )
     : [];
 
   return (
@@ -317,8 +317,8 @@ export default function CalendarPage() {
                         ${isToday
                           ? "bg-white/20 text-white"
                           : allDone
-                          ? "bg-green-100 text-green-600"
-                          : "bg-primary-100 text-primary-600"
+                            ? "bg-green-100 text-green-600"
+                            : "bg-primary-100 text-primary-600"
                         }
                       `}>
                         {dayTopics.length} {allDone ? "✓" : ""}

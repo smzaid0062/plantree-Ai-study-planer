@@ -6,11 +6,22 @@ import {
 } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import api from "../services/api";
+import { notifyGamification } from "../utils/xpNotify";
 
 // ── Question Card ──────────────────────────────────────────────
 function QuestionCard({ question, questionNumber, total, onAnswer }) {
   const [selected, setSelected] = useState(null);
   const [revealed, setRevealed] = useState(false);
+
+
+  useEffect(() => {
+  if (!finished) return;
+  api
+    .post("/api/quiz/complete", { score, total: questions.length })
+    .then((res) => notifyGamification({ xp: res.data.data }))
+    .catch(console.error);
+}, [finished]);
+
 
   const handleSelect = (option) => {
     if (revealed) return;
