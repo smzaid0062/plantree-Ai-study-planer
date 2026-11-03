@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Sparkles, RefreshCw, Loader2, CheckCircle2, Circle, Clock, Calendar, AlertTriangle } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import api from "../services/api";
+import { notifyGamification } from "../utils/xpNotify";
 
 const STATUS_COLORS = {
   done: { bg: "#dcfce7", text: "#16a34a", border: "#bbf7d0" },
@@ -19,18 +20,19 @@ function TopicCard({ topic, onStatusUpdate }) {
   const [updating, setUpdating] = useState(false);
   const colors = STATUS_COLORS[topic.status] || STATUS_COLORS.pending;
 
-  const handleToggle = async () => {
-    const newStatus = topic.status === "done" ? "pending" : "done";
-    setUpdating(true);
-    try {
-      await api.patch(`/api/topics/${topic._id}/status`, { status: newStatus });
-      onStatusUpdate?.();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setUpdating(false);
-    }
-  };
+const handleToggle = async () => {
+  const newStatus = topic.status === "done" ? "pending" : "done";
+  setUpdating(true);
+  try {
+    const res = await api.patch(`/api/topics/${topic._id}/status`, { status: newStatus });
+    if (newStatus === "done") notifyGamification(res.data.gamification);
+    onStatusUpdate?.();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setUpdating(false);
+  }
+};
 
   return (
     <div

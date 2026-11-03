@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { CheckCircle2, Circle, Clock, Filter, Search, Loader2, BookOpen } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import api from "../services/api";
+import { notifyGamification } from "../utils/xpNotify";
 
 const STATUS_OPTIONS = ["all", "pending", "done", "in_progress"];
 
@@ -12,7 +13,8 @@ function TopicRow({ topic, onUpdate }) {
     const newStatus = topic.status === "done" ? "pending" : "done";
     setUpdating(true);
     try {
-      await api.patch(`/api/topics/${topic._id}/status`, { status: newStatus });
+      const res = await api.patch(`/api/topics/${topic._id}/status`, { status: newStatus });
+      if (newStatus === "done") notifyGamification(res.data.gamification);
       onUpdate?.();
     } catch (err) {
       console.error(err);
@@ -28,9 +30,8 @@ function TopicRow({ topic, onUpdate }) {
   };
 
   return (
-    <div className={`flex items-center gap-4 px-5 py-3.5 border-b border-surface-100 hover:bg-surface-50 transition-colors ${
-      topic.status === "done" ? "bg-green-50/30" : ""
-    }`}>
+    <div className={`flex items-center gap-4 px-5 py-3.5 border-b border-surface-100 hover:bg-surface-50 transition-colors ${topic.status === "done" ? "bg-green-50/30" : ""
+      }`}>
       {/* Checkbox */}
       <button onClick={handleToggle} disabled={updating} className="shrink-0">
         {updating ? (
@@ -44,9 +45,8 @@ function TopicRow({ topic, onUpdate }) {
 
       {/* Title */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold ${
-          topic.status === "done" ? "line-through text-gray-400" : "text-gray-800"
-        }`}>
+        <p className={`text-sm font-semibold ${topic.status === "done" ? "line-through text-gray-400" : "text-gray-800"
+          }`}>
           {topic.title}
         </p>
         {topic.scheduledDate && (

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import api from "../services/api";
+import { notifyGamification } from "../utils/xpNotify";
 
 // ── Format time helper ─────────────────────────────────────────
 const formatTime = (secs) => {
@@ -70,11 +71,12 @@ function StudyTimer({ topics, lastStudiedTopic, onSessionComplete }) {
     setSaving(true);
     try {
       const hoursStudied = parseFloat((seconds / 3600).toFixed(2));
-      await api.post("/api/sessions", {
+      const res = await api.post("/api/sessions", {
         topicId: selectedTopic._id,
         hoursStudied,
         notes,
       });
+      notifyGamification(res.data.gamification);
       setSaved(true);
       setSeconds(0);
       setNotes("");
@@ -96,8 +98,8 @@ function StudyTimer({ topics, lastStudiedTopic, onSessionComplete }) {
   const ringColor = isRunning
     ? "#16a34a"
     : seconds > 0
-    ? "#ca8a04"
-    : "#e2e8f0";
+      ? "#ca8a04"
+      : "#e2e8f0";
 
   const circumference = 2 * Math.PI * 54;
   const progress = seconds > 0
@@ -131,9 +133,8 @@ function StudyTimer({ topics, lastStudiedTopic, onSessionComplete }) {
             <span className="text-3xl font-black text-gray-900 font-mono">
               {formatTime(seconds)}
             </span>
-            <span className={`text-xs font-medium mt-1 ${
-              isRunning ? "text-primary-600" : seconds > 0 ? "text-amber-500" : "text-gray-400"
-            }`}>
+            <span className={`text-xs font-medium mt-1 ${isRunning ? "text-primary-600" : seconds > 0 ? "text-amber-500" : "text-gray-400"
+              }`}>
               {isRunning ? "● Running" : seconds > 0 ? "⏸ Paused" : "Ready to start"}
             </span>
           </div>
