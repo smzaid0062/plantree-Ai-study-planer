@@ -9,6 +9,7 @@ import ExamCountdown from "../components/dashboard/ExamCountdown";
 import useDashboard from "../hooks/useDashboard";
 import StreakCard from "../components/dashboard/StreakCard";
 import ActivityHeatmap from "../components/dashboard/ActivityHeatmap";
+import ReviseToday from "../components/dashboard/ReviseToday";
 
 export default function Dashboard() {
   const { data, loading, error, refetch } = useDashboard();
@@ -82,47 +83,49 @@ export default function Dashboard() {
     },
   ];
 
-return (
-  <Layout missedCount={data?.missedTopics || 0}>
-    <div className="space-y-6">
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        {stats.map((stat) => (
-          <StatCard key={stat.title} {...stat} />
-        ))}
-      </div>
+  return (
+    <Layout missedCount={data?.missedTopics || 0}>
+      <div className="space-y-6">
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          {stats.map((stat) => (
+            <StatCard key={stat.title} {...stat} />
+          ))}
+        </div>
 
-      {/* Main content — 3 columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Today's plan — 2 cols */}
-        <div className="lg:col-span-2">
-          <TodayPlan
-            topics={data?.todayTopics || []}
-            onStatusUpdate={refetch}
+        {/* Main content — 3 columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <TodayPlan
+              topics={data?.todayTopics || []}
+              onStatusUpdate={refetch}
+            />
+          </div>
+          <div>
+            <CalendarWidget scheduledDates={[]} />
+          </div>
+        </div>
+
+        {/* Revision + streak */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ReviseToday />
+          <StreakCard />
+        </div>
+
+        {/* Bottom row — charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <ProgressOverview
+            completedTopics={data?.completedTopics || 0}
+            pendingTopics={data?.pendingTopics || 0}
+            totalTopics={data?.totalTopics || 0}
           />
+          <StudyHoursChart weeklyProgress={data?.weeklyProgress || []} />
+          <ExamCountdown subjects={data?.subjects || []} />
         </div>
 
-        {/* Calendar — 1 col */}
-        <div>
-          <CalendarWidget scheduledDates={[]} />
-        </div>
+        {/* Activity heatmap */}
+        <ActivityHeatmap />
       </div>
-
-      {/* Bottom row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ProgressOverview
-          completedTopics={data?.completedTopics || 0}
-          pendingTopics={data?.pendingTopics || 0}
-          totalTopics={data?.totalTopics || 0}
-        />
-        <StudyHoursChart weeklyProgress={data?.weeklyProgress || []} />
-        <ExamCountdown subjects={data?.subjects || []} />
-         <StreakCard />
-      </div>
-
-      {/* Streak + Activity */}
-      <ActivityHeatmap />
-    </div>
-  </Layout>
-);
+    </Layout>
+  );
 }
