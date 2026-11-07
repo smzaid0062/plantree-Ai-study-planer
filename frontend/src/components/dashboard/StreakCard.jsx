@@ -23,7 +23,7 @@ export default function StreakCard() {
           {streak === null ? "—" : `${streak} day${streak === 1 ? "" : "s"}`}
         </p>
         <p className="text-xs text-gray-400">
-          {streak >= 3 ? "Bonus XP active 🔥" : "3 din streak par bonus XP milega"}
+          {streak >= 3 ? "Bonus XP active 🔥" : "Will you get bonus XP for a 3-day streak"}
         </p>
       </div>
     </div>

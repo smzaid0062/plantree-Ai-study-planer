@@ -14,13 +14,32 @@ function QuestionCard({ question, questionNumber, total, onAnswer }) {
   const [revealed, setRevealed] = useState(false);
 
 
-  useEffect(() => {
+ useEffect(() => {
   if (!finished) return;
   api
-    .post("/api/quiz/complete", { score, total: questions.length })
-    .then((res) => notifyGamification({ xp: res.data.data }))
+    .post("/api/quiz/complete", {
+      subjectId,
+      score,
+      total: questions.length,
+      results,
+    })
+    .then((res) => notifyGamification({ xp: res.data.data.xp }))
     .catch(console.error);
 }, [finished]);
+
+
+
+  const [results, setResults] = useState([]);
+
+  const handleAnswer = (isCorrect, topic) => {
+    setResults((prev) => [...prev, { topic, correct: isCorrect }]);
+    if (isCorrect) setScore((prev) => prev + 1);
+    if (currentIndex + 1 >= questions.length) {
+      setTimeout(() => setFinished(true), 300);
+    } else {
+      setTimeout(() => setCurrentIndex((prev) => prev + 1), 300);
+    }
+  };
 
 
   const handleSelect = (option) => {
@@ -58,13 +77,12 @@ function QuestionCard({ question, questionNumber, total, onAnswer }) {
           {Array(total).fill(null).map((_, i) => (
             <div
               key={i}
-              className={`h-1.5 w-6 rounded-full transition-all ${
-                i < questionNumber - 1
-                  ? "bg-primary-500"
-                  : i === questionNumber - 1
+              className={`h-1.5 w-6 rounded-full transition-all ${i < questionNumber - 1
+                ? "bg-primary-500"
+                : i === questionNumber - 1
                   ? "bg-primary-300"
                   : "bg-surface-200"
-              }`}
+                }`}
             />
           ))}
         </div>
@@ -72,6 +90,12 @@ function QuestionCard({ question, questionNumber, total, onAnswer }) {
 
       {/* Question */}
       <div className="bg-primary-50 border border-primary-100 rounded-xl p-5 mb-6">
+        {question.topic && (
+          <span className="inline-block text-xs font-semibold text-primary-600 bg-white border border-primary-100 px-2.5 py-1 rounded-lg mb-3">
+            📌 {question.topic}
+          </span>
+        )}
+
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
             <Brain size={16} className="text-white" />
@@ -92,13 +116,12 @@ function QuestionCard({ question, questionNumber, total, onAnswer }) {
             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 transition-all text-left ${getOptionStyle(key)}`}
           >
             {/* Option label */}
-            <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black shrink-0 transition-all ${
-              revealed && key === question.correct
-                ? "bg-green-500 text-white"
-                : revealed && key === selected && key !== question.correct
+            <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black shrink-0 transition-all ${revealed && key === question.correct
+              ? "bg-green-500 text-white"
+              : revealed && key === selected && key !== question.correct
                 ? "bg-red-500 text-white"
                 : "bg-surface-100 text-gray-600"
-            }`}>
+              }`}>
               {key}
             </span>
 
@@ -117,11 +140,10 @@ function QuestionCard({ question, questionNumber, total, onAnswer }) {
 
       {/* Explanation */}
       {revealed && (
-        <div className={`mt-4 px-4 py-3 rounded-xl text-sm font-medium animate-fade-in ${
-          selected === question.correct
-            ? "bg-green-50 border border-green-200 text-green-700"
-            : "bg-red-50 border border-red-200 text-red-700"
-        }`}>
+        <div className={`mt-4 px-4 py-3 rounded-xl text-sm font-medium animate-fade-in ${selected === question.correct
+          ? "bg-green-50 border border-green-200 text-green-700"
+          : "bg-red-50 border border-red-200 text-red-700"
+          }`}>
           <p className="font-bold mb-0.5">
             {selected === question.correct ? "✅ Correct!" : `❌ Correct answer: ${question.correct}`}
           </p>
