@@ -11,6 +11,7 @@ import aiRoutes from "./src/routes/ai.routes.js";
 import sessionRoutes from "./src/routes/session.routes.js";
 import quizRoutes from "./src/routes/quiz.routes.js";
 import resourceRoutes from "./src/routes/resource.routes.js";
+import revisionRoutes from "./src/routes/revision.routes.js";
 
 connectDB();
 
@@ -48,6 +49,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/resources", resourceRoutes);
+app.use("/api/revision", revisionRoutes);
 
 // Fixed PORT logic
 const PORT = process.env.PORT || 5000;
