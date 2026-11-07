@@ -19,6 +19,13 @@ const topicSchema = new mongoose.Schema(
       enum: ["pending", "in_progress", "done"],
       default: "pending",
     },
+    review: {
+      easeFactor: { type: Number, default: 2.5 },
+      interval: { type: Number, default: 0 },
+      repetitions: { type: Number, default: 0 },
+      nextReviewDate: { type: Date, default: null },
+      lastReviewedAt: { type: Date, default: null },
+    },
     scheduledDate: { type: Date, default: null },
     completedAt: { type: Date, default: null },
     order: { type: Number, default: 0 },
